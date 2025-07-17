@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from djshop.apps.catalog.models import Category
@@ -8,7 +9,7 @@ class CreateCategoryNodeSerializer(serializers.ModelSerializer):
     parent = serializers.IntegerField(required=False)
 
     def create(self, validated_data):
-        parent = validated_data.pop("parent", None)
+        parent = validated_data.pop('parent', None)
 
         if parent is None:
             instance = Category.add_root(**validated_data)
@@ -32,3 +33,18 @@ class CategoryTreeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ('id','title', 'description' ,'is_public' ,'slug','children')
+CategoryTreeSerializer.get_children = extend_schema_field(serializers.ListField(child=CategoryTreeSerializer()))( CategoryTreeSerializer.get_children)
+
+
+class CategoryNodeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+         model = Category
+         fields = "__all__"
+
+
+class CategoryModificationSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Category
+        fields = ('id','title', 'description' ,'is_public')
